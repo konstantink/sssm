@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Super Simple Stock Market</title>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <script src="/static/js/vendor/underscore-min.js"></script>
+    <script src="/static/js/vendor/backbone-min.js"></script>
+    <script src="/static/js/vendor/handlebars-v4.0.5.js"></script>
+    <script src="/static/js/vendor/moment.min.js"></script>
+    <script src="/static/js/stock.js"></script>
+
+    <style>
+        body {
+            padding: 75px;
+        }
+        th.left, td.left {
+            text-align: right;
+        }
+        .table-wrapper {
+            padding-top: 45px;
+        }
+        .btn-group {
+            padding-right: 25px;
+        }
+        .capitalize {
+            text-transform: capitalize;
+        }
+    </style>
+</head>
+<body>
+
+    {% include 'partials/navbar.html' %}
+
+    <div class="container">
+        <div id="stocks" class="row">
+
+        </div>
+    </div>
+
+    <div id="id_stock-record_modal" class="modal fade" tabindex="-1" role="form"></div>
+
+    <div id="id_trade_modal" class="modal fade" tabindex="-1" role="form"></div>
+
+    <div id="id_deals_modal" class="modal fade" tabindex="-1" role="document"></div>
+
+    <script type="text/x-handlebars-template" id="stocks_tpl">
+        <div class="pull-right">
+            <div class="btn-group" role="group">
+                <a data-action="buy" id="id_buy_btn" class="btn btn-default">
+                    <span class="glyphicon glyphicon-gbp" aria-hidden="true"></span> Buy shares
+                </a>
+                <a data-action="sell" id="id_sell_btn" class="btn btn-default">
+                    <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> Sell shares
+                </a>
+                <a id="id_show-deals_btn" class="btn btn-default">
+                    <span class="glyphicon glyphicon-briefcase" aria-hidden="true"></span> Show successful deals
+                </a>
+            </div>
+            <a id="id_add-stock_btn" class="btn btn-default">
+                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add new record
+            </a>
+        </div>
+        <div id="id_stocks_list" class="table-wrapper"></div>
+    </script>
+
+    <script type="text/x-handlebars-template" id="stock-table_tpl">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Stock Symbol</th>
+                    <th>Type</th>
+                    <th class="left">Price</th>
+                    <th class="left">Last Dividend</th>
+                    <th class="left">Fixed Dividend</th>
+                    <th class="left">Par Value</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </script>
+
+    <script type="text/x-handlebars-template" id="stock-item_tpl">
+        {% raw %}
+            <td>{{ symbol }}</td>
+            <td>{{ type }}</td>
+            <td class="left">{{ price }}</td>
+            <td class="left">{{ last_dividend }}</td>
+            <td class="left">{{ fixed_dividend }}</td>
+            <td class="left">{{ par_value }}</td>
+        {% endraw %}
+    </script>
+
+    <script type="text/html" id="stock-record_tpl">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    Add new stock record
+                </div>
+                <div class="modal-body">
+                    <form class="form-horizontal">
+                        <div data-form-field-symbol class="form-group">
+                            <label for="id_stock-symbol_input" class="col-sm-3 control-label">Stock Symbol</label>
+                            <div class="col-sm-5">
+                                <input type="text" class="form-control" id="id_stock-symbol_input" placeholder="Stock symbol: e.g. AAPL">
+                                <span data-error-symbol class="help-block hidden"></span>
+                            </div>
+                        </div>
+                        <div data-form-field-type class="form-group">
+                            <label for="id_type_input" class="col-sm-3 control-label">Type</label>
+                            <div class="col-sm-5">
+                                <select class="form-control" id="id_type_input">
+                                    <option value="0">Common</option>
+                                    <option value="1">Preferred</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div data-form-field-price class="form-group">
+                            <label for="id_price_input" class="col-sm-3 control-label">Price</label>
+                            <div class="col-sm-5">
+                                <input type="text" class="form-control" id="id_price_input" placeholder="Price: e.g. 123.2">
+                            </div>
+                        </div>
+                        <div data-form-field-last_dividend class="form-group">
+                            <label for="id_last-dividend_input" class="col-sm-3 control-label">Last dividend</label>
+                            <div class="col-sm-5">
+                                <input type="text" class="form-control" id="id_last-dividend_input" placeholder="Last dividend: e.g. 28">
+                            </div>
+                        </div>
+                        <div data-form-field-fixed_dividend class="form-group">
+                            <label for="id_fixed-dividend_input" class="col-sm-3 control-label">Fixed dividend</label>
+                            <div class="col-sm-5">
+                                <input type="text" disabled class="form-control" id="id_fixed-dividend_input" placeholder="Fixed dividend: e.g. 0.02">
+                                <span data-error-fixed_dividend class="help-block hidden"></span>
+                            </div>
+                        </div>
+                        <div data-form-field-par_value class="form-group">
+                            <label for="id_par-value_input" class="col-sm-3 control-label">Par Value</label>
+                            <div class="col-sm-5">
+                                <input type="text" class="form-control" id="id_par-value_input" placeholder="Par Value: e.g. 10">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button id="id_add-record_btn" type="button" class="btn btn-primary disabled">Add record</button>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <script type="text/x-handlebars-template" id="trade_tpl">
+        {% raw %}
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header capitalize">
+                    {{ action }} shares
+                </div>
+                <div class="modal-body">
+                    <form class="form-horizontal">
+                        <div data-form-field-type class="form-group">
+                            <label for="id_stock_input" class="col-sm-3 control-label">Type</label>
+                            <div class="col-sm-5">
+                                <select class="form-control" id="id_stock_input">
+                                    {{#each stocks}}
+                                    <option>{{ symbol }}</option>
+                                    {{/each}}
+                                </select>
+                            </div>
+                        </div>
+                        <div data-form-field-share_price class="form-group">
+                            <label for="id_share-price_input" class="col-sm-3 control-label">Price</label>
+                            <div class="col-sm-5">
+                                <input type="text" class="form-control" id="id_share-price_input" placeholder="Price: e.g. 10">
+                            </div>
+                        </div>
+                        <div data-form-field-share_quantity class="form-group">
+                            <label for="id_share-quantity_input" class="col-sm-3 control-label">Quantity</label>
+                            <div class="col-sm-5">
+                                <input type="text" class="form-control" id="id_share-quantity_input" placeholder="Quantity: e.g. 10">
+                            </div>
+                        </div>
+                        <input id="id_indicator_input" type="number" class="form-control hidden" hidden value="{{ indicator }}">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button id="id_add-trade_btn" type="button" class="btn btn-primary capitalize disabled">{{ action }}</button>
+                </div>
+            </div>
+        </div>
+        {% endraw %}
+    </script>
+
+    <script type="text/x-handlebars-template" id="deals_tpl">
+        {% raw %}
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    Successful trades
+                </div>
+                <div class="modal-body">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Stock Symbol</th>
+                                <th>Indicator</th>
+                                <th class="left">Price</th>
+                                <th class="left">Quantity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{#each trades}}
+                            <tr>
+                                <td>{{ timestamp }}</td>
+                                <td>{{ symbol }}</td>
+                                <td>{{ indicator }}</td>
+                                <td class="left">{{ price }}</td>
+                                <td class="left">{{ quantity }}</td>
+                            </tr>
+                            {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+        {% endraw %}
+
+    </script>
+
+</body>
+</html>
