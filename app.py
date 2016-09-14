@@ -14,7 +14,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def hello_world():
-    return render_template('home.html')
+    return render_template('home.html', gbce_index='%.2d' % Trade.get_instance().gbce_index)
 
 
 @app.route('/stocks', methods=['GET'])
@@ -25,7 +25,8 @@ def get_stocks():
     :return: Status code 200 and the list of trades
     """
     response = make_response(json.dumps({'status': 'ok',
-                                         'stocks': [st.json() for st in Stock.get_instance()]}))
+                                         'stocks': [st.json() for st in Stock.get_instance()],
+                                         'gbce_index': Trade.get_instance().gbce_index}))
     response.headers['Content-Type'] = 'application/json'
     return response
 
@@ -47,10 +48,7 @@ def create_stock():
     :param fixed_dividend: Fixed dividend
     :param par_value: Par-value
     """
-    if request.is_json:
-        form = StockRecordForm(**request.get_json())
-    else:
-        form = StockRecordForm(request.data)
+    form = StockRecordForm(data=request.get_json())
     if form.validate():
         try:
             stock = StockRecord(**form.data)
@@ -166,7 +164,8 @@ def trade_shares():
                        price=form.data['price'],
                        quantity=form.data['quantity'])
         response = make_response(json.dumps({'status': 'ok',
-                                             'trade': trade.json()}))
+                                             'trade': trade.json(),
+                                             'gbce_index': Trade.get_instance().gbce_index}))
         response.headers['Content-Type'] = 'application/json'
         return response
     response = make_response(json.dumps({'status': 'error',

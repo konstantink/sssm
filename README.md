@@ -24,10 +24,11 @@ The problem solution is represented with the REST service. The list of server en
 - **/trades** - implements methods **GET** and **POST**. For method **GET** server returns the list of successful trades for all stocks. For method **POST** server creates a new trade record and return it to the client.
 
 The back-end part has next entities: `StockRecord`, `TradeRecord`, `Stock`, `Trade`.
-`StockRecord` - represents a single record about certain stock in the system. Among the input parameters it also includes dynamic properties such as `dividend_yield`, `pe_ratio` and `vwsp` which are recalculated every time the client requests the information about stock.
-`Stock` - represents a container for the `StockRecord` objects. It is implemented as a singleton. Also this class allows to iterate over all registered in the service stocks.
-`TradeRecord` - respresnsts a single record about deal on certain stock. It stores time when the deal happened, what stock, how many shares and at what price the deal was closed.
-`Trade` - represents a container for the `TradeRecord` objects. It is also (like `Stock` entity) implemented as a singleton and allows iteration over trading deals. It has a method called `get_trades_by_symbol` that returns the list of trades for the last period of time (defaults to 5 minutes), it is used to calculate Volume Weighted Stock Price. 
+
+- `StockRecord` - represents a single record about certain stock in the system. Among the input parameters it also includes dynamic properties such as `dividend_yield`, `pe_ratio` and `vwsp` which are recalculated every time the client requests the information about stock.
+- `Stock` - represents a container for the `StockRecord` objects. It is implemented as a singleton. Also this class allows to iterate over all registered in the service stocks.
+- `TradeRecord` - respresnsts a single record about deal on certain stock. It stores time when the deal happened, what stock, how many shares and at what price the deal was closed.
+- `Trade` - represents a container for the `TradeRecord` objects. It is also (like `Stock` entity) implemented as a singleton and allows iteration over trading deals. It has a method called `get_trades_by_symbol` that returns the list of trades for the last period of time (defaults to 5 minutes), it is used to calculate Volume Weighted Stock Price. 
 
 Forms for validating the input data are the next: `StockRecordForm`, `TradeRecordForm`. Forms check that the input data type corresponds to required, that values are correct and satisfies requirements. In case of any violation forms return the list of errors, so that client can fix his input data. 
 

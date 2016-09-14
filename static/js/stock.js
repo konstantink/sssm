@@ -376,6 +376,7 @@ $(function() {
                     stock.fetch({
                         url: stock.get('url')
                     });
+                    $('#id_gbce').html(parseFloat(response.gbce_index).toFixed(2))
                 }, this),
                 error: function(model, response) {
                     console.log(model, response);

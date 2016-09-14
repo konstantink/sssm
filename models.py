@@ -1,8 +1,7 @@
 # coding=UTF-8
 
+import operator
 import time
-
-from functools import partial
 
 
 __author__ = 'Konstantin Kolesnikov'
@@ -264,4 +263,17 @@ class Trade(object):
         """
         return [trade for trade in self
                 if trade.symbol == symbol and (trade.timestamp > (int(time.time())-time_range*60))]
+
+    @property
+    def gbce_index(self):
+        """
+        Calculates GBCE All shares index
+
+        :return: GBCE All shares index
+        """
+        stocks_vwsp = [Stock.get_instance().get_stock_by_symbol(tr.symbol).vwsp for tr in Trade.get_instance()]
+        try:
+            return (reduce(operator.mul, stocks_vwsp, 1)) ** (1.0/len(stocks_vwsp))
+        except ZeroDivisionError:
+            return 0.0
 
