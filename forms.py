@@ -21,7 +21,7 @@ class StockRecordForm(Form):
     """
     symbol = StringField('Stock Symbol', [validators.Length(min=3, max=5), validators.InputRequired()])
     type = SelectField('Type', [validators.InputRequired()], choices=STOCK_TYPE.items())
-    last_dividend = IntegerField('Last dividend', [validators.NumberRange(min=0), validators.InputRequired()])
+    last_dividend = IntegerField('Last dividend', [validators.NumberRange(min=0)])
     fixed_dividend = FloatField('Fixed dividend', [validators.NumberRange(min=0.0, max=1.0)], default=0.0)
     par_value = IntegerField('Par value', [validators.NumberRange(min=0), validators.InputRequired()])
     price = FloatField('Stock price', [validators.NumberRange(min=0.0), validators.InputRequired()])
@@ -37,6 +37,11 @@ class StockRecordForm(Form):
                 self.errors['fixed_dividend'].append('Fixed dividend should be defined for Preferred stock type')
                 success = False
         return success
+
+    def validate_last_dividend(self, field):
+        value = field.data
+        if value is None:
+            raise validators.StopValidation('This field is required.')
 
 
 class TradeRecordForm(Form):
