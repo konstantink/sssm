@@ -123,10 +123,6 @@ $(function() {
 
     var StockView = Backbone.View.extend({
         el: $('#stocks'),
-        tradeIndicator: {
-            'buy': 0,
-            'sell': 1
-        },
 
         events: _.defaults({
             'click #id_add-stock_btn': 'handleStockModal',
@@ -169,7 +165,7 @@ $(function() {
             $placeholder.empty();
             $placeholder.append(tpl({
                 action: action,
-                indicator: this.tradeIndicator[action],
+                indicator: action,
                 stocks: this.collection.toJSON()
             }));
             $('#id_trade_modal #id_add-trade_btn').on('click', this.trade);
@@ -222,10 +218,10 @@ $(function() {
         getCurrentStockValues: function() {
             var params = {};
             params.symbol = $.trim(this.stockFields.symbol.val());
-            params.type = parseInt(this.stockFields.type.val());
+            params.type = $.trim(this.stockFields.type.val());
             params.price = parseFloat(this.stockFields.price.val());
             params.last_dividend = parseInt(this.stockFields.last_dividend.val());
-            if(params.type)
+            if(params.type == 'preferred')
                 params.fixed_dividend = parseFloat(this.stockFields.fixed_dividend.val());
             params.par_value = parseFloat(this.stockFields.par_value.val());
 
@@ -235,8 +231,8 @@ $(function() {
         getRequiredFieldsState: function() {
             var params = this.getCurrentStockValues();
 
-            return params.par_value && params.symbol && params.price && ((params.type && params.fixed_dividend) ||
-                !params.type) && params.last_dividend;
+            return params.par_value && params.symbol && params.price && ((params.type == 'preferred' && params.fixed_dividend) ||
+                params.type == 'common') && params.last_dividend;
         },
 
         getCurrentTradeValues: function() {
@@ -244,7 +240,7 @@ $(function() {
             params.symbol = $.trim(this.tradeFields.symbol.val());
             params.price = parseFloat(this.tradeFields.price.val());
             params.quantity = parseInt(this.tradeFields.quantity.val());
-            params.indicator = parseInt(this.tradeFields.indicator.val());
+            params.indicator = $.trim(this.tradeFields.indicator.val());
 
             return params;
         },

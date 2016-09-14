@@ -7,8 +7,14 @@ import time
 __author__ = 'Konstantin Kolesnikov'
 
 
-STOCK_TYPE = ('Common', 'Preferred')
-TRADE_TYPE = ('Buy', 'Sell')
+STOCK_TYPE = {
+    'common': 'Common',
+    'preferred': 'Preferred'
+}
+TRADE_TYPE = {
+    'buy': 'Buy',
+    'sell': 'Sell'
+}
 
 
 class StockRecordExistsError(Exception):
@@ -39,10 +45,10 @@ class StockRecord(object):
     :param par_value: Stock Par-value
     """
 
-    def __init__(self, symbol='', price=0.0, type=0, last_dividend=0, fixed_dividend=0.0, par_value=0):
+    def __init__(self, symbol='', price=0.0, type=None, last_dividend=0, fixed_dividend=0.0, par_value=0):
         self.symbol = symbol
         self.price = price
-        self.type = STOCK_TYPE[type]
+        self.type = STOCK_TYPE.get(type, 'common')
         self.last_dividend = last_dividend
         self.fixed_dividend = fixed_dividend
         self.par_value = par_value
@@ -65,7 +71,7 @@ class StockRecord(object):
             'timestamp': self.timestamp,
             'url': self.url
         }
-        if self.type == STOCK_TYPE[1]:
+        if self.type == STOCK_TYPE['preferred']:
             obj['fixed_dividend'] = self.fixed_dividend
         return obj
 
@@ -81,7 +87,7 @@ class StockRecord(object):
         :return: dividend yield calculated depending on the stock type
         """
         try:
-            if self.type == STOCK_TYPE[0]:
+            if self.type == STOCK_TYPE['preferred']:
                 return float(self.last_dividend / self.price)
             return (self.fixed_dividend * self.par_value) / self.price
         except ZeroDivisionError:
@@ -175,9 +181,9 @@ class TradeStockRecord(object):
     :param quantity: Shares quantity
     """
 
-    def __init__(self, timestamp=None, indicator=0, symbol=None, price=0.0, quantity=0):
+    def __init__(self, timestamp=None, indicator=None, symbol=None, price=0.0, quantity=0):
         self.timestamp = timestamp or int(time.time())
-        self.indicator = TRADE_TYPE[indicator]
+        self.indicator = TRADE_TYPE.get(indicator, 'buy')
         self.symbol = symbol or ''
         self.price = price
         self.quantity = quantity
@@ -240,7 +246,7 @@ class Trade(object):
         :param quantity: Shares quantity
         :return: Successful Trade record
         """
-        return self._trade(symbol, price, quantity, indicator=0)
+        return self._trade(symbol, price, quantity, indicator='buy')
 
     def sell(self, symbol, price, quantity):
         """
@@ -251,7 +257,7 @@ class Trade(object):
         :param quantity: Shares quantity
         :return: Successful Trade record
         """
-        return self._trade(symbol, price, quantity, indicator=1)
+        return self._trade(symbol, price, quantity, indicator='sell')
 
     def get_trades_for_symbol(self, symbol, time_range=5):
         """

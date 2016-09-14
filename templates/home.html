@@ -121,8 +121,8 @@
                             <label for="id_type_input" class="col-sm-3 control-label">Type</label>
                             <div class="col-sm-5">
                                 <select class="form-control" id="id_type_input">
-                                    <option value="0">Common</option>
-                                    <option value="1">Preferred</option>
+                                    <option value="common">Common</option>
+                                    <option value="preferred">Preferred</option>
                                 </select>
                             </div>
                         </div>
@@ -192,7 +192,7 @@
                                 <input type="text" class="form-control" id="id_share-quantity_input" placeholder="Quantity: e.g. 10">
                             </div>
                         </div>
-                        <input id="id_indicator_input" type="number" class="form-control hidden" hidden value="{{ indicator }}">
+                        <input id="id_indicator_input" type="text" class="form-control hidden" hidden value="{{ indicator }}">
                     </form>
                 </div>
                 <div class="modal-footer">

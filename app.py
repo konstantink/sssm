@@ -4,6 +4,7 @@
 from flask import Flask
 from flask import render_template, request, make_response
 from flask import json
+from werkzeug.datastructures import MultiDict
 
 from forms import StockRecordForm, TradeRecordForm
 from models import StockRecord, Stock, Trade, TRADE_TYPE, StockRecordExistsError
@@ -14,7 +15,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def hello_world():
-    return render_template('home.html', gbce_index='%.2d' % Trade.get_instance().gbce_index)
+    return render_template('home.html', gbce_index='%.02f' % Trade.get_instance().gbce_index)
 
 
 @app.route('/stocks', methods=['GET'])
@@ -48,7 +49,7 @@ def create_stock():
     :param fixed_dividend: Fixed dividend
     :param par_value: Par-value
     """
-    form = StockRecordForm(data=request.get_json())
+    form = StockRecordForm(MultiDict(mapping=request.get_json()))
     if form.validate():
         try:
             stock = StockRecord(**form.data)
@@ -108,7 +109,7 @@ def update_stock(stock_symbol):
         return make_response(json.dumps({'status': 'error',
                                          'text': 'Stock \'%s\' is not found' % stock_symbol}), 404)
 
-    form = StockRecordForm(**request.get_json())
+    form = StockRecordForm(MultiDict(mapping=request.get_json()))
     if form.validate():
         form.populate_obj(stock)
         Stock.get_instance().update(stock)
@@ -157,9 +158,9 @@ def trade_shares():
         return make_response(json.dumps({'status': 'error',
                                          'text': 'Stock \'%s\' is not found' % stock_symbol}), 404)
 
-    form = TradeRecordForm(**data)
+    form = TradeRecordForm(MultiDict(mapping=data))
     if form.validate():
-        action = getattr(Trade.get_instance(), TRADE_TYPE[form.data['indicator']].lower())
+        action = getattr(Trade.get_instance(), form.data['indicator'])
         trade = action(symbol=form.data['symbol'],
                        price=form.data['price'],
                        quantity=form.data['quantity'])
